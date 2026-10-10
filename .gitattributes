@@ -1,0 +1,9 @@
+# Preserve vendor model files as supplied and keep large meshes out of text diffs.
+*.xml -diff
+*.mlp -diff
+*.obj binary
+*.stl binary
+*.STL binary
+*.mp4 binary
+*.jpg binary
+*.png binary

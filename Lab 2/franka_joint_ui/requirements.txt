@@ -1,0 +1,2 @@
+mujoco==3.14.0
+imgui[glfw]==2.0.0
