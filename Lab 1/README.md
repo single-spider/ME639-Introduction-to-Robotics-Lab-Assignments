@@ -7,13 +7,15 @@ these three robots are included locally under `mujoco_menagerie/` and
 
 ## Demonstrations
 
-| Crazyflie 2 | TurtleBot3 Waffle Pi | TurtleBot3 Burger |
-| --- | --- | --- |
-| [![Crazyflie screenshot](media/crazyflie.jpg)](media/crazyflie.mp4) | [![Waffle Pi screenshot](media/turtlebot_waffle_pi.jpg)](media/turtlebot_waffle_pi.mp4) | [![Burger screenshot](media/turtlebot_burger.jpg)](media/turtlebot_burger.mp4) |
-| [Video](media/crazyflie.mp4) | [Video](media/turtlebot_waffle_pi.mp4) | [Video](media/turtlebot_burger.mp4) |
+The [UI recording](media/lab1_controls_and_matrices.mp4) shows the controls and
+changing matrices for all three robots in the actual MuJoCo app. Run
+`python lab1_ui.py --record-demo media/lab1_controls_and_matrices.mp4` to
+regenerate it. [Animated UI preview](media/lab1_controls_and_matrices.gif).
 
-Each video is an eight-second scripted simulation capture with live state
-labels. The keyboard and slider controls are in the app below.
+Separate demos: [Crazyflie](media/crazyflie.mp4),
+[Waffle Pi](media/turtlebot_waffle_pi.mp4), and
+[Burger](media/turtlebot_burger.mp4). They show scripted simulation motion
+with live state labels; the README displays their animated previews inline.
 
 ## Setup and run
 

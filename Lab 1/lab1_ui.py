@@ -13,6 +13,7 @@ import glfw
 import imgui
 import mujoco
 import numpy as np
+from OpenGL import GL
 from imgui.integrations.glfw import GlfwRenderer
 
 from lab1_drone import Drone, check as check_drone
@@ -245,6 +246,58 @@ class LabWindow:
                 imgui.text("Wheel rates L/R (rad/s): " + ", ".join(f"{x:+.2f}" for x in rates))
         imgui.end()
 
+    def step_simulation(self, keys):
+        if self.robot_index == 0:
+            command = [self.drone_velocity[i] + keys[i] * (180 / math.pi if i == 3 else 1)
+                       for i in range(4)]
+            active = any(abs(value) > 1e-5 for value in command)
+            if active:
+                self.drone.drive(command[0], command[1], command[2],
+                                 math.radians(command[3]), self.model.opt.timestep)
+            elif self.drone_was_driving:
+                self.drone.hold()
+            self.drone_was_driving = active
+            self.drone.step()
+        else:
+            linear = float(np.clip(self.linear + keys[0], -.18, .18))
+            angular = float(np.clip(self.angular + keys[1], -1., 1.))
+            self.data.ctrl[self.left], self.data.ctrl[self.right] = wheel_speeds(linear, angular, self.variant)
+            mujoco.mj_step(self.model, self.data)
+
+    def render_frame(self, capture=False):
+        self.imgui.process_inputs()
+        imgui.new_frame()
+        self.panel()
+        self.matrices_panel()
+        width, height = glfw.get_framebuffer_size(self.window)
+        if not width or not height:
+            return None
+        mujoco.mjv_updateScene(self.model, self.data, self.options, None,
+                              self.camera, mujoco.mjtCatBit.mjCAT_ALL, self.scene)
+        pos = self.data.xpos[self.body].copy()
+        rotation = self.data.xmat[self.body].reshape(3, 3).copy()
+        rise = .12 if self.robot_index == 1 else 0.
+        draw_frame(self.scene, pos + [0, 0, rise], rotation)
+        draw_frame(self.scene, pos + [.25, -.25, rise], np.eye(3))
+        mujoco.mjr_render(mujoco.MjrRect(0, 0, width, height), self.scene, self.context)
+        imgui.render()
+        self.imgui.render(imgui.get_draw_data())
+        pixels = None
+        if capture:
+            GL.glReadBuffer(GL.GL_BACK)
+            pixels = np.frombuffer(GL.glReadPixels(0, 0, width, height, GL.GL_RGB,
+                                                   GL.GL_UNSIGNED_BYTE), dtype=np.uint8)
+            pixels = pixels.reshape(height, width, 3)[::-1].copy()
+        glfw.swap_buffers(self.window)
+        return pixels
+
+    def close(self):
+        self.imgui.shutdown()
+        del self.context
+        del self.scene
+        glfw.destroy_window(self.window)
+        glfw.terminate()
+
     def run(self):
         previous = time.monotonic()
         remainder = 0.
@@ -255,62 +308,63 @@ class LabWindow:
                 remainder += min(now - previous, .05)
                 previous = now
                 while remainder >= self.model.opt.timestep:
-                    if self.robot_index == 0:
-                        keys = self.live_command()
-                        command = [
-                            self.drone_velocity[i] + keys[i] * (180 / math.pi if i == 3 else 1)
-                            for i in range(4)
-                        ]
-                        active = any(abs(value) > 1e-5 for value in command)
-                        if active:
-                            self.drone.drive(command[0], command[1], command[2],
-                                             math.radians(command[3]), self.model.opt.timestep)
-                        elif self.drone_was_driving:
-                            self.drone.hold()
-                        self.drone_was_driving = active
-                        self.drone.step()
-                    else:
-                        keys = self.live_command()
-                        linear = float(np.clip(self.linear + keys[0], -.18, .18))
-                        angular = float(np.clip(self.angular + keys[1], -1., 1.))
-                        self.data.ctrl[self.left], self.data.ctrl[self.right] = wheel_speeds(linear, angular, self.variant)
-                        mujoco.mj_step(self.model, self.data)
+                    self.step_simulation(self.live_command())
                     remainder -= self.model.opt.timestep
-                self.imgui.process_inputs()
-                imgui.new_frame()
-                self.panel()
-                self.matrices_panel()
-                width, height = glfw.get_framebuffer_size(self.window)
-                if width and height:
-                    mujoco.mjv_updateScene(self.model, self.data, self.options, None,
-                                          self.camera, mujoco.mjtCatBit.mjCAT_ALL, self.scene)
-                    pos = self.data.xpos[self.body].copy()
-                    rotation = self.data.xmat[self.body].reshape(3, 3).copy()
-                    rise = .12 if self.robot_index == 1 else 0.
-                    draw_frame(self.scene, pos + [0, 0, rise], rotation)
-                    draw_frame(self.scene, pos + [.25, -.25, rise], np.eye(3))
-                    mujoco.mjr_render(mujoco.MjrRect(0, 0, width, height), self.scene, self.context)
-                    imgui.render()
-                    self.imgui.render(imgui.get_draw_data())
-                    glfw.swap_buffers(self.window)
-                else:
+                if not all(glfw.get_framebuffer_size(self.window)):
                     time.sleep(.05)
+                else:
+                    self.render_frame()
                 if self.pending_robot is not None:
                     self.load_robot(self.pending_robot)
                     self.pending_robot = None
                     remainder = 0.
                     previous = time.monotonic()
         finally:
-            self.imgui.shutdown()
-            del self.context
-            del self.scene
-            glfw.destroy_window(self.window)
-            glfw.terminate()
+            self.close()
+
+    def record_demo(self, path, fps=20, seconds_per_robot=7):
+        """Capture the actual controls and live-matrix UI during a repeatable demo."""
+        import imageio_ffmpeg
+
+        glfw.set_window_size(self.window, 1408, 784)
+        glfw.swap_interval(0)
+        glfw.poll_events()
+        width, height = glfw.get_framebuffer_size(self.window)
+        writer = imageio_ffmpeg.write_frames(str(path), (width, height), fps=fps,
+                                              codec="libx264", quality=6,
+                                              pix_fmt_in="rgb24", macro_block_size=1)
+        writer.send(None)
+        try:
+            for index in range(3):
+                self.load_robot(index)
+                name = ("Crazyflie 2", "TurtleBot3 Waffle Pi", "TurtleBot3 Burger")[index]
+                for frame in range(fps * seconds_per_robot):
+                    t = frame / fps
+                    if index == 0:
+                        self.drone_velocity = ([.13, 0., 0., 0.] if 1 <= t < 3 else
+                                               [0., .12, 0., 0.] if 3 <= t < 4.5 else
+                                               [0., 0., .09, 40.] if 4.5 <= t < 6 else
+                                               [0., 0., 0., 0.])
+                    else:
+                        self.linear, self.angular = ((.14, 0.) if 1 <= t < 3 else
+                                                     (0., .8) if 3 <= t < 5 else
+                                                     (.12, 0.) if 5 <= t < 6.5 else
+                                                     (0., 0.))
+                    self.status = f"Recording demo: {name} | t={t:.1f}s | controls and matrices update live"
+                    for _ in range(max(1, round(1 / (fps * self.model.opt.timestep)))):
+                        self.step_simulation((0., 0., 0., 0.) if index == 0 else (0., 0.))
+                    glfw.poll_events()
+                    pixels = self.render_frame(capture=True)
+                    writer.send(pixels.tobytes())
+            writer.close()
+        finally:
+            self.close()
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true", help="run both model checks without a GUI")
+    parser.add_argument("--record-demo", metavar="MP4", help="record controls and live matrices UI")
     args = parser.parse_args()
     if args.check:
         check_drone()
@@ -325,6 +379,8 @@ def main():
             pose, jacobian, rpy = kinematics(model, data, body)
             assert pose.shape == (4, 4) and jacobian.shape == (6, 6)
             assert np.all(np.isfinite(pose)) and np.all(np.isfinite(jacobian))
+    elif args.record_demo:
+        LabWindow().record_demo(args.record_demo)
     else:
         LabWindow().run()
 
