@@ -35,6 +35,14 @@ The app's Robot menu switches arms. Enter joint angles or use the sliders;
 **Move to configuration** applies the target and **Return home** resets the
 selected arm. Joint limits and current angles are displayed in the panel.
 
+## Part 3: handwritten DH derivation
+
+[View the scanned two-page DH derivation](report/handwritten-dh-derivation.pdf).
+It covers coordinate frames, DH parameters, special axis cases, and the
+homogeneous transform construction.
+
+[![First page of the handwritten DH derivation](media/dh_derivation_preview.jpg)](report/handwritten-dh-derivation.pdf)
+
 ## DH forward kinematics
 
 `python_script_for_dh_tran.py` implements standard and modified DH matrices
