@@ -40,15 +40,20 @@ above is a short preview.
 
 ## Install and run on Ubuntu
 
-Use Python 3.12 and a fresh virtual environment. Ubuntu needs OpenGL libraries
-for rendering; the physics checks can run without a display.
+Use Python 3.12 and a fresh virtual environment. The commands below also work
+on Ubuntu 22.04, whose default Python is older: a small bootstrap environment
+installs `uv`, which downloads Python 3.12 and creates the lab environment.
+Ubuntu needs OpenGL libraries for rendering; physics checks need no display.
 
 ```bash
 sudo apt install python3-venv libgl1 libegl1 libglfw3
-python3.12 -m venv .venv
+python3 -m venv .venv-bootstrap
+.venv-bootstrap/bin/python -m pip install uv
+.venv-bootstrap/bin/uv python install 3.12
+.venv-bootstrap/bin/uv venv --python 3.12 .venv
+.venv-bootstrap/bin/uv pip install --python .venv/bin/python -r requirements.txt
+.venv-bootstrap/bin/uv pip check --python .venv/bin/python
 source .venv/bin/activate
-python -m pip install -r requirements.txt
-python -m pip check
 ```
 
 From this `Lab 3` directory, run one robot/method, or all six combinations:
