@@ -1,0 +1,11 @@
+{
+  "robot": "franka",
+  "layout": {
+    "height": 0.3,
+    "center_x": 0.5499999999999999,
+    "center_y": -0.1,
+    "yaw_deg": 0.0
+  },
+  "selection_source": "validation seeds only; final test untouched",
+  "source_sha256": "311059a4984bb5af71d0cc31ebc1258dd68c87d6b075190f744edc079ddfb769"
+}

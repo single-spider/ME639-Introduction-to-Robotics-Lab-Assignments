@@ -1,0 +1,8 @@
+.venv*/
+__pycache__/
+*.py[cod]
+runs/
+*.log
+MUJOCO_LOG.TXT
+.work/
+*.zip

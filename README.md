@@ -1,12 +1,12 @@
 # ME 639: Introduction to Robotics — Lab Assignments
 
-**Student:** Gaurav Srivastava
+**Student:** Gaurav Kumar Srivastava · 23110113
 
 **Course:** ME 639, Introduction to Robotics
 
 **Term:** Autumn 2026
 
-MuJoCo implementations and demonstrations for Lab 1 and Lab 2. The animations
+MuJoCo implementations and demonstrations for Labs 1–3. The animations
 play directly in this README; each full resolution MP4 is linked below its preview.
 
 ## Lab 1 — Drone and TurtleBot3
@@ -71,3 +71,18 @@ controls and verification commands.
 `python franka_joint_ui/app.py`. The app controls both arms.
 `python_script_for_dh_tran.py` calculates end-effector poses from DH parameters.
 See the [Lab 2 README](Lab%202/README.md) for exact commands.
+
+## Lab 3 — Franka and Heal pick and place
+
+[Submission README, setup, methods, and validation](Lab%203/README.md)
+
+![Franka and Heal pick-and-place preview](Lab%203/video/lab3_preview.gif)
+
+[Full demonstration video (MP4)](Lab%203/video/ME639_Lab3_23110113_Demonstration.mp4) ·
+[Five-page report (PDF)](Lab%203/report/ME639_Lab3_23110113_Report.pdf) ·
+[Results and metrics](Lab%203/results/metrics.csv)
+
+The task compares Mink, damped least squares, and quadratic-programming IK on
+both arms. The submission includes 300 recorded evaluation episodes, the model
+assets, reproducibility checks, and the final report and video. See the
+[Lab 3 README](Lab%203/README.md) for installation and run commands.

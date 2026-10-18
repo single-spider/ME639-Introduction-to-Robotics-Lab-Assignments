@@ -1,0 +1,16 @@
+{
+  "acceleration": 6.0,
+  "rank": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    -9.589666666666536,
+    -6.275482119164719
+  ],
+  "n": 30,
+  "successes": 30,
+  "safe_successes": 30,
+  "selected_using": "validation seeds400-409 only",
+  "source_sha256": "6d717b910d4d3ecf273221e6262e9f58ebc22617aa24c88be28b3e38aaee6114"
+}

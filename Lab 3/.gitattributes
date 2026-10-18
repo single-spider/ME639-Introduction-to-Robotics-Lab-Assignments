@@ -1,0 +1,13 @@
+*.py -text
+*.json text eol=lf
+*.jsonl text eol=lf
+*.md text eol=lf
+*.sh text eol=lf
+*.xml -text
+*.STL -text
+*.stl -text
+*.obj -text
+*.png binary
+*.npz binary
+*.mp4 binary
+*.pdf binary

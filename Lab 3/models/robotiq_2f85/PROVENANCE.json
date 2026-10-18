@@ -1,0 +1,5 @@
+{
+  "repository": "google-deepmind/mujoco_menagerie",
+  "commit": "4d038b3feae26ec82b46a4d586379114012a8ac7",
+  "reason": "Lab3 custom v4 gripper mesh assets absent; use complete official model instead"
+}
