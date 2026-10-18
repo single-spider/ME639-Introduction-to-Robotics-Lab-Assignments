@@ -1,35 +1,40 @@
 # Ubuntu validation
 
-The package was tested under **Ubuntu 24.04.4 LTS, Linux x86-64 (WSL2),
-Python 3.12.3**, using a fresh Linux virtual environment and the exact versions
-in `requirements.txt`. No Windows Python environment was used for these checks.
+## Native dual-boot Ubuntu — verified 19 October 2026
 
-The submission ZIP was extracted to a temporary directory on Ubuntu's native
-filesystem. All source, configuration and mesh files were loaded from that
-extracted copy, independently of the original workspace. This also checks
-case-sensitive asset paths.
+This repository's `Lab 3` copy was tested on the **native Ubuntu 22.04.5 LTS**
+installation (Linux 6.8.0-138-generic, x86-64) with a fresh Python **3.12.15**
+virtual environment on the Linux ext4 filesystem. Python 3.12 was installed
+with `uv`; the packages were installed from the unmodified pinned
+`requirements.txt`. `uv pip check` reported all 27 installed packages
+compatible. No Windows environment or parent development modules were used.
 
-## Completed checks
+Commands and observed outcomes:
 
-- All five submission tests passed: both model/Jacobian checks, DLS/QP agreement,
-  QP bounds, both table layouts and complete historical evaluation groups.
-- Workspace and method-comparison plots were regenerated from the supplied data.
-- Both robots completed Mink, DLS and QP trials on the workspace-sized tables
-  at seed 3100: **6/6 constraint-safe placements**.
-- Both robots completed the three methods on the additional placement layouts
-  at seed 2000: **6/6 constraint-safe placements**.
-- The documented Heal QP placement-layout failure at seed 2004 reproduced a
-  pre-grasp timeout. Its nonzero exit status is expected, not a setup failure.
-- Both models rendered successfully with **`MUJOCO_GL=egl`**, without a display
-  window.
-- Complete physical recordings were generated for Franka/DLS and Heal/QP on
-  the workspace-sized tables at seed 3100.
+| Check | Result |
+| --- | --- |
+| `python tools/check_submission.py` | 5/5 tests passed |
+| `MUJOCO_GL=egl python tools/check_submission.py --render` | 5/5 tests passed; Franka and Heal PNGs rendered and visually inspected |
+| `python run_lab.py --robot both --method all --layout sizing --seed 3100` | 6/6 constraint-safe successes |
+| `python run_lab.py --robot both --method all --layout placement --seed 2000` | 6/6 constraint-safe successes |
+| `python plot_results.py` | Plots regenerated under ignored `runs/plots/` |
+| `MUJOCO_GL=egl python run_lab.py --robot both --method dls --layout sizing --seed 3100 --record` | 2/2 constraint-safe successes; both MP4s decoded without errors |
+| `python run_lab.py --robot heal --method qp --layout placement --seed 2004` | Expected `RuntimeError:timeout:pregrasp`, exit status 1 |
 
-Key installed versions: MuJoCo 3.14.0, Mink 1.3.0, NumPy 2.4.6, SciPy 1.17.1,
-qpsolvers 4.13.0 and quadprog 0.1.13.
+The rendering backend used here was **EGL**. The fresh recordings and test
+output remain under ignored `runs/` and are not part of the submitted
+historical evaluation data. The report and supplied demonstration MP4 were
+also inspected; the latter is 2 min 13 s, 1280×1080, H.264 with AAC audio.
 
-These are Linux compatibility and smoke checks, not a rerun of the entire
-300-episode historical evaluation or a hardware experiment. Different Ubuntu
-graphics drivers may require GLFW or OSMesa instead of EGL; the README provides
-the corresponding options. The runtime code and final submission files have no
-Windows font or drive-path dependencies.
+These checks establish native Ubuntu execution for both models, methods,
+layouts, rendering and recording. They do not rerun the full 300-episode
+historical evaluation or test physical hardware. The two documented Heal QP
+placement failures (seeds 2004 and 2018) remain part of the supplied results.
+
+## Earlier WSL2 validation
+
+The original package was separately tested on Ubuntu 24.04.4 LTS under WSL2,
+Python 3.12.3, with the same pinned dependencies. Five tests, both six-case
+layout runs, EGL rendering, full Franka/Heal recordings, and plot regeneration
+passed. The known Heal QP seed-2004 timeout reproduced there too. WSL2
+results were kept distinct from the native dual-boot checks above.
